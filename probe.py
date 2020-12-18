@@ -72,8 +72,8 @@ class CProbe(object):
             strProbeIno += line
         dictProbeInfo = json.loads(strProbeIno, encoding='utf-8')
         ## for debug
-        with open("d:/workroom/testroom/probeinfo.json", "wt", encoding='utf8') as fp:
-            fp.write(strProbeIno)
+        # with open("d:/workroom/testroom/probeinfo.json", "wt", encoding='utf8') as fp:
+        #     fp.write(strProbeIno)
         return dictProbeInfo
 
     def probeinfo_2_qp(self, dictProbeInfo):
