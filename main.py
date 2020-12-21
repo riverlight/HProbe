@@ -42,7 +42,7 @@ def probe_url(options, videourl):
 def main():
     print("probe.py : format and visualize ffprobe's output \n"
           "Help: python3 main.py -h\n")
-    parse = optparse.OptionParser(usage='"usage:%prog [options] videoURL"', version="%prog 1.0")
+    parse = optparse.OptionParser(usage='"usage:%prog [options] videoURL"', version="%prog 1.0.1")
     # parse.add_option('-q', '--qp', dest='user', action='store', type=str, metavar='user', help='Enter User Name!!')
     parse.add_option('--qp', dest='b_qp', action='store_true', default=False, help="show video QP")
     parse.add_option('--vframesize', dest='b_vsize', action='store_true', default=False, help='show video frame size')
