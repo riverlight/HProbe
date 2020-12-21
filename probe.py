@@ -29,7 +29,8 @@ class CProbe(object):
     def get_frameinfo(self, videourl, options, duration_sec=0):
         dictFrameOption = {
             'ts' : ['pkt_pts', 'pkt_pts_time', 'pkt_dts', 'pkt_dts_time'],
-            'pict_type' : ['pict_type']
+            'pict_type' : ['pict_type'],
+            'vframe_size' : ['pkt_size', 'pkt_dts_time']
         }
         listOption = list()
         for option in options:
@@ -48,6 +49,10 @@ class CProbe(object):
         if 'pict_type' in options:
             listPictType = self.probeinfo_2_picttype(dictProbeInfo)
             dictFrameInfo['pict_type'] = listPictType
+        if "vframe_size" in options:
+            listVFrameSize_byFrame, listVFrameSize_byTime = self.probeinfo_2_vframesize(dictProbeInfo)
+            dictFrameInfo['vframe_size_byframe'] = listVFrameSize_byFrame
+            dictFrameInfo['vframe_size_bytime'] = listVFrameSize_byTime
         return dictFrameInfo
 
     # -show_entries format:frame=pts,pts_time
@@ -97,6 +102,31 @@ class CProbe(object):
             if (frame['media_type'] == 'video'):
                 listPictType.append(frame['pict_type'])
         return listPictType
+
+    def probeinfo_2_vframesize(self, dictProbeInfo):
+        listVFrameSize_byFrame = list()
+        listVFrameSize_byTime = list()
+        if dictProbeInfo.get("frames", None) is None:
+            return listVFrameSize_byFrame, listVFrameSize_byTime
+        time_sec = 1.0
+        size_bytime = 0
+        for frame in dictProbeInfo['frames']:
+            if (frame['media_type'] == 'video'):
+                listVFrameSize_byFrame.append(int(frame['pkt_size']))
+                pkt_dts_time = round(float(frame.get("pkt_dts_time", -1)), 6)
+                if pkt_dts_time<0:
+                    continue
+                if pkt_dts_time>time_sec:
+                    listVFrameSize_byTime.append(size_bytime)
+                    size_bytime = int(frame['pkt_size'])
+                    time_sec += 1.0
+                else:
+                    size_bytime += int(frame['pkt_size'])
+        if (size_bytime>0):
+            listVFrameSize_byTime.append(size_bytime)
+            size_bytime = 0
+        return listVFrameSize_byFrame, listVFrameSize_byTime
+
 
     def probeinfo_2_timestamp(self, dictProbeInfo):
         listKey = ['pkt_pts', 'pkt_pts_time', 'pkt_dts', 'pkt_dts_time']
@@ -151,6 +181,21 @@ class CProbe(object):
         plt.show()
         return
 
+    def draw_vframesize(self, dictFrameInfo):
+        listVFrameSize_byFrame, listVFrameSize_byTime = dictFrameInfo['vframe_size_byframe'], dictFrameInfo['vframe_size_bytime']
+        plt.figure("VFrame size by frame")
+        plt.xlabel("Frame SN")
+        plt.ylabel("VFrame size")
+        y_axis0 = np.array(listVFrameSize_byFrame)
+        plt.plot(y_axis0)
+
+        plt.figure("VFrame size by time")
+        plt.xlabel("time(second)")
+        plt.ylabel("VFrame size")
+        y_axis1 = np.array(listVFrameSize_byTime)
+        plt.plot(y_axis1)
+        plt.show()
+
     def draw_qp(self, listQP):
         plt.figure("QP")
         plt.xlabel("Frame SN")
@@ -195,12 +240,23 @@ class CProbe(object):
         print("Video frame QP : ")
         for (i, qp) in enumerate(listQP):
             print("NO.%d : %d" % (i, qp))
+        print("mean QP : %05f" % (float(sum(listQP))/len(listQP)))
 
     def print_vtype(self, dictFramInfo):
         listVType = dictFramInfo['pict_type']
         print("Video frame type : ")
         for (i, vtype) in enumerate(listVType):
             print("NO.%d : %s" % (i, vtype))
+
+    def print_vframesize(self, dictFrameInfo):
+        listVFrameSize_byFrame = dictFrameInfo['vframe_size_byframe']
+        listVFrameSize_byTime = dictFrameInfo['vframe_size_bytime']
+        print("Video frame size by frame : ")
+        for (i, vfsize) in enumerate(listVFrameSize_byFrame):
+            print("NO.%d\t%d" % (i, vfsize))
+        print("Video frame size by time : ")
+        for (i, vfsize) in enumerate(listVFrameSize_byTime):
+            print("Time : %ds\t%d" % (i, vfsize))
 
     def print_ts(self, dictFrameInfo):
         listKey = ['pkt_pts', 'pkt_pts_time', 'pkt_dts', 'pkt_dts_time', 'dts_interval_time']
@@ -228,17 +284,21 @@ HProbe = CProbe()
 
 
 if __name__=="__main__":
-    videourl = "rtmp://14.29.108.156/zeushub/willwanghanyu1500K?domain=play-qiniu.cloudvdn.com"
+    # videourl = "rtmp://14.29.108.156/zeushub/willwanghanyu1500K?domain=play-qiniu.cloudvdn.com"
     # videourl = "d:\\workroom\\testroom\\48.mp4"
+    videourl = "d:\\workroom\\testroom\\40s640x360.mp4"
     HProbe.print()
     # listQP = HProbe.get_qp(videourl, skip_frame="default", duration_sec=0)
     # HProbe.draw_qp(listQP)
     # HProbe.print_qp(listQP)
 
-    # ci = HProbe.get_coreinfo("d:\\workroom\\testroom\\48.mp4")
+    # ci = HProbe.get_coreinfo(videourl)
     # HProbe.print_coreinfo(ci)
-    dictFrameInfo = HProbe.get_frameinfo(videourl, ['ts', 'pict_type'], duration_sec=2)
+    dictFrameInfo = HProbe.get_frameinfo(videourl, ['ts', 'pict_type', 'vframe_size'], duration_sec=30)
     # HProbe.draw_frame_ts(dictFrameInfo)
     # HProbe.draw_frame_vtype(dictFrameInfo)
     # HProbe.print_vtype(dictFrameInfo)
-    HProbe.print_ts(dictFrameInfo)
+    # HProbe.print_ts(dictFrameInfo)
+    HProbe.draw_vframesize(dictFrameInfo)
+    HProbe.print_vframesize(dictFrameInfo)
+
