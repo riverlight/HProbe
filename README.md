@@ -24,6 +24,7 @@ python3  main.py --coreinfo "rtmp://14.29.108.156/zeushub/willwanghanyu1500K?dom
 
 ## 3. 注意事项
 ### 建议使用 python 3 
+### 请注意把 ffprobe 所在目录放入 PATH 环境变量中
 
 `--skip_frame` 只在 qp 时有效
 
