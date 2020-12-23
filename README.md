@@ -30,6 +30,7 @@ python3  main.py --vframesize "rtmp://14.29.108.156/zeushub/willwanghanyu1500K?d
 ## 3. 注意事项
 ### 建议使用 python 3 
 ### 请注意把 ffprobe 所在目录放入 PATH 环境变量中
+### --qp 执行超级慢，请用类似命令去执行：nohup python3  main.py --qp  --nodraw --duration 1 d:\workroom\testroom\avsmart-noenh\avsmart2_2-mission-impossible-fallout-trailer-1_h1080p.mp4 > nohup.out
 
 `--skip_frame` 只在 qp 时有效
 
