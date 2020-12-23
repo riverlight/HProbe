@@ -97,7 +97,7 @@ class CProbe(object):
                 if (len(items[6])==1 or len(items[6])==2):
                     qp = float(items[6])
                     frame['qps'].append(qp)
-        print(dictProbeInfo)
+        # print(dictProbeInfo)
         return dictProbeInfo
 
     def probeinfo_2_qp(self, dictProbeInfo):
