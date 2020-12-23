@@ -42,9 +42,10 @@ def probe_url(options, videourl):
 def main():
     print("probe.py : format and visualize ffprobe's output \n"
           "Help: python3 main.py -h\n")
-    parse = optparse.OptionParser(usage='"usage:%prog [options] videoURL"', version="%prog 1.0.1")
+    parse = optparse.OptionParser(usage='"usage:%prog [options] videoURL"', version="%prog 1.0.2")
     # parse.add_option('-q', '--qp', dest='user', action='store', type=str, metavar='user', help='Enter User Name!!')
-    parse.add_option('--qp', dest='b_qp', action='store_true', default=False, help="show video QP")
+    parse.add_option('--qp', dest='b_qp', action='store_true', default=False,
+                     help="show video QP, very very slow, I suggest using 'nohup' execute this mode")
     parse.add_option('--vframesize', dest='b_vsize', action='store_true', default=False, help='show video frame size')
     parse.add_option('--skip_frame', action='store', dest='skip_frame', type='string', default="default",
                      help="which frame will be skip when count QP, legal value: none, default, noref, bidir, nokey, nointra, all")
