@@ -16,7 +16,7 @@ class CProbe(object):
     def get_coreinfo(self, videourl):
         strOption = self._strGenOption
         strOption += " -print_format json  -show_format -show_streams "
-        dictProbeInfo = self.video_2_dict(videourl, strOption)
+        dictProbeInfo = self.video_2_dict_json(videourl, strOption)
         dictCoreInfo = dict()
         dictCoreInfo['format'] = dictProbeInfo['format']
         for stream in dictProbeInfo['streams']:
@@ -39,7 +39,7 @@ class CProbe(object):
         strOption += " -print_format json -show_entries format:frame=media_type,%s " % ",".join(listOption)
         strOption += """ -read_intervals "%%%d" """ % (MAX_DURATION if duration_sec <= 0 else duration_sec)
         # print(strOption)
-        dictProbeInfo = self.video_2_dict(videourl, strOption)
+        dictProbeInfo = self.video_2_dict_csv(videourl, strOption)
         dictFrameInfo = dict()
         if 'ts' in options:
             dictVideoTS, dictAudioTS, listAVTSInterval_time = self.probeinfo_2_timestamp(dictProbeInfo)
@@ -64,12 +64,12 @@ class CProbe(object):
         strOption += "  -print_format csv -select_streams v -show_frames -debug qp -show_log 48 "
         strOption += """ -read_intervals "%%%d" """ % iDuration
         strOption += " -skip_frame %s " % skip_frame
-        dictProbeInfo = self.video_2_dict(videourl, strOption)
+        dictProbeInfo = self.video_2_dict_csv(videourl, strOption)
         listQP = self.probeinfo_2_qp(dictProbeInfo)
         # print(listQP)
         return listQP
 
-    def video_2_dict(self, videourl, strOption):
+    def video_2_dict_csv(self, videourl, strOption):
         strCmd = "%s %s %s " % (_gProbeCmd, strOption, videourl)
         # print(strCmd)
         strProbeInfo = ""
@@ -97,6 +97,23 @@ class CProbe(object):
                 if (len(items[6])==1 or len(items[6])==2):
                     qp = float(items[6])
                     frame['qps'].append(qp)
+        # print(dictProbeInfo)
+        return dictProbeInfo
+
+    def video_2_dict_json(self, videourl, strOption):
+        strCmd = "%s %s %s " % (_gProbeCmd, strOption, videourl)
+        # print(strCmd)
+        strProbeInfo = ""
+        lines = list()
+        probeOut = os.popen(strCmd)
+        for line in probeOut.readlines():
+            strProbeInfo += line
+            lines.append(line.replace("\n", ""))
+        ## for debug
+        # with open("d:/workroom/testroom/probeinfo.json", "wt", encoding='utf8') as fp:
+        #     fp.write(strProbeIno)
+        # exit(0)
+        dictProbeInfo = json.loads(strProbeInfo, encoding='utf-8')
         # print(dictProbeInfo)
         return dictProbeInfo
 
@@ -273,6 +290,7 @@ class CProbe(object):
         print("Video frame size by time : ")
         for (i, vfsize) in enumerate(listVFrameSize_byTime):
             print("Time : %ds\t%d" % (i, vfsize))
+        print("Video frame size (total) : %d" % sum(listVFrameSize_byTime))
 
     def print_ts(self, dictFrameInfo):
         listKey = ['pkt_pts', 'pkt_pts_time', 'pkt_dts', 'pkt_dts_time', 'dts_interval_time']
