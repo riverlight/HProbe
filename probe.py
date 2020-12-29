@@ -39,7 +39,7 @@ class CProbe(object):
         strOption += " -print_format json -show_entries format:frame=media_type,%s " % ",".join(listOption)
         strOption += """ -read_intervals "%%%d" """ % (MAX_DURATION if duration_sec <= 0 else duration_sec)
         # print(strOption)
-        dictProbeInfo = self.video_2_dict_csv(videourl, strOption)
+        dictProbeInfo = self.video_2_dict_json(videourl, strOption)
         dictFrameInfo = dict()
         if 'ts' in options:
             dictVideoTS, dictAudioTS, listAVTSInterval_time = self.probeinfo_2_timestamp(dictProbeInfo)
@@ -70,34 +70,42 @@ class CProbe(object):
         return listQP
 
     def video_2_dict_csv(self, videourl, strOption):
-        strCmd = "%s %s %s " % (_gProbeCmd, strOption, videourl)
+        temp_log = os.path.basename(videourl) + ".txt"
+        strCmd = "%s %s %s 2>%s " % (_gProbeCmd, strOption, videourl, temp_log)
         # print(strCmd)
-        strProbeInfo = ""
         lines = list()
         probeOut = os.popen(strCmd)
+        # print("cmd popen done")
         for line in probeOut.readlines():
-            strProbeInfo += line
-            lines.append(line.replace("\n", ""))
+            line = line.replace("\n", "")
+            if ('log,' == line[0:4]):
+                str_qp = line.split(",")[6]
+                if ('[' not in str_qp):
+                    lines.append(str_qp)
+                continue
+            lines.append(line)
+        # print("probe done")
         ## for debug
         # with open("d:/workroom/testroom/probeinfo.json", "wt", encoding='utf8') as fp:
-        #     fp.write(strProbeIno)
+        #     fp.write(strProbeInfo)
         # exit(0)
-        # dictProbeInfo = json.loads(strProbeIno, encoding='utf-8')
         dictProbeInfo = dict()
         dictProbeInfo['frames'] = list()
         frame = None
         for line in lines:
+            if (len(line)<3 and len(line)>0):
+                qp = float(line)
+                frame['qps'].append(qp)
+                continue
             if ('frame,video' in line):
                 if frame is not None:
                     dictProbeInfo['frames'].append(frame)
                 frame = dict()
                 frame['qps'] = list()
-            if ('log,'==line[0:4]):
-                items = line.split(',')
-                if (len(items[6])==1 or len(items[6])==2):
-                    qp = float(items[6])
-                    frame['qps'].append(qp)
+                continue
         # print(dictProbeInfo)
+        # print("frame info done")
+        os.system("rm -f %s " % temp_log)
         return dictProbeInfo
 
     def video_2_dict_json(self, videourl, strOption):
@@ -121,7 +129,7 @@ class CProbe(object):
         listQP = list()
         for frame in dictProbeInfo['frames']:
             qps = frame['qps']
-            qp = float(sum(qps))/len(qps) if len(qps)>0 else 23
+            qp = float(sum(qps))/float(len(qps)) if len(qps)>0 else 23.0
             listQP.append(qp)
         return listQP
 
@@ -268,7 +276,7 @@ class CProbe(object):
     def print_qp(self, listQP):
         print("Video frame QP : ")
         for (i, qp) in enumerate(listQP):
-            print("NO.%d : %d" % (i, qp))
+            print("NO.%d : %f" % (i, qp))
         print("mean QP : %05f" % (float(sum(listQP))/len(listQP)))
 
     def print_vtype(self, dictFramInfo):
@@ -317,19 +325,19 @@ HProbe = CProbe()
 
 if __name__=="__main__":
     # videourl = "rtmp://14.29.108.156/zeushub/willwanghanyu1500K?domain=play-qiniu.cloudvdn.com"
-    # videourl = "d:\\workroom\\testroom\\48.mp4"
-    videourl = "d:\\workroom\\testroom\\40s640x360.mp4"
-    # listQP = HProbe.get_qp(videourl, skip_frame="default", duration_sec=0)
+    videourl = "d:\\workroom\\testroom\\a2.mp4"
+    # videourl = "d:\\workroom\\testroom\\ht\\avsmart2_7B5EA1865D9277E71CE28927841553DB.mp4"
+    listQP = HProbe.get_qp(videourl, skip_frame="default", duration_sec=10)
     # HProbe.draw_qp(listQP)
-    # HProbe.print_qp(listQP)
+    HProbe.print_qp(listQP)
 
     # ci = HProbe.get_coreinfo(videourl)
     # HProbe.print_coreinfo(ci)
-    dictFrameInfo = HProbe.get_frameinfo(videourl, ['ts', 'pict_type', 'vframe_size'], duration_sec=30)
+    dictFrameInfo = HProbe.get_frameinfo(videourl, ['vframe_size'], duration_sec=10)
     # HProbe.draw_frame_ts(dictFrameInfo)
     # HProbe.draw_frame_vtype(dictFrameInfo)
     # HProbe.print_vtype(dictFrameInfo)
     # HProbe.print_ts(dictFrameInfo)
-    HProbe.draw_vframesize(dictFrameInfo)
+    # HProbe.draw_vframesize(dictFrameInfo)
     HProbe.print_vframesize(dictFrameInfo)
 
