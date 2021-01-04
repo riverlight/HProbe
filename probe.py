@@ -12,6 +12,8 @@ _gProbeCmd = "ffprobe"
 class CProbe(object):
     def __init__(self):
         self._strGenOption = " -v quiet -hide_banner "
+        self._listQP = None
+        self._dictFrameInfo = None
 
     def get_coreinfo(self, videourl):
         strOption = self._strGenOption
@@ -53,6 +55,7 @@ class CProbe(object):
             listVFrameSize_byFrame, listVFrameSize_byTime = self.probeinfo_2_vframesize(dictProbeInfo)
             dictFrameInfo['vframe_size_byframe'] = listVFrameSize_byFrame
             dictFrameInfo['vframe_size_bytime'] = listVFrameSize_byTime
+        self._dictFrameInfo = dictFrameInfo
         return dictFrameInfo
 
     # -show_entries format:frame=pts,pts_time
@@ -67,6 +70,7 @@ class CProbe(object):
         dictProbeInfo = self.video_2_dict_csv(videourl, strOption)
         listQP = self.probeinfo_2_qp(dictProbeInfo)
         # print(listQP)
+        self._listQP = listQP
         return listQP
 
     def video_2_dict_csv(self, videourl, strOption):
@@ -319,25 +323,37 @@ class CProbe(object):
         for i in range(0, min(len(dictFrameInfo['AVTSInterval_time']), len(dictVideoTS['pkt_dts_time']))):
             print("%s\t%s" % (str(dictVideoTS['pkt_dts_time'][i]), str(dictFrameInfo['AVTSInterval_time'][i])))
 
+    def list_v(self, lst, i):
+        return lst[i] if i<len(lst) else None
+
+    def print_vframe(self):
+        listVType = self._dictFrameInfo.get("pict_type", list())
+        listFrameSize = self._dictFrameInfo.get('vframe_size_byframe', list())
+        listQP = self._listQP
+        framenum = max([len(listVType), len(listFrameSize), len(listQP)])
+        print("sn\tvtype\tqp\tframesize")
+        for i in range(framenum):
+            print("%d\t%s\t%s\t%s" % (i, self.list_v(listVType, i), str(self.list_v(listFrameSize, i)), str(self.list_v(self._listQP, i))))
 
 HProbe = CProbe()
 
 
 if __name__=="__main__":
     # videourl = "rtmp://14.29.108.156/zeushub/willwanghanyu1500K?domain=play-qiniu.cloudvdn.com"
-    videourl = "d:\\workroom\\testroom\\a2.mp4"
-    # videourl = "d:\\workroom\\testroom\\ht\\avsmart2_7B5EA1865D9277E71CE28927841553DB.mp4"
+    # videourl = "d:\\workroom\\testroom\\h48.mp4"
+    videourl = "d:\\workroom\\testroom\\ht\\avsmart2_7B5EA1865D9277E71CE28927841553DB.mp4"
     listQP = HProbe.get_qp(videourl, skip_frame="default", duration_sec=10)
     # HProbe.draw_qp(listQP)
     HProbe.print_qp(listQP)
 
     # ci = HProbe.get_coreinfo(videourl)
     # HProbe.print_coreinfo(ci)
-    dictFrameInfo = HProbe.get_frameinfo(videourl, ['vframe_size'], duration_sec=10)
+    dictFrameInfo = HProbe.get_frameinfo(videourl, ['vframe_size', 'pict_type'], duration_sec=10)
     # HProbe.draw_frame_ts(dictFrameInfo)
     # HProbe.draw_frame_vtype(dictFrameInfo)
     # HProbe.print_vtype(dictFrameInfo)
     # HProbe.print_ts(dictFrameInfo)
     # HProbe.draw_vframesize(dictFrameInfo)
-    HProbe.print_vframesize(dictFrameInfo)
+    # HProbe.print_vframesize(dictFrameInfo)
+    HProbe.print_vframe()
 

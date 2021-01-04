@@ -39,6 +39,8 @@ def probe_url(options, videourl):
         if options.b_nodraw is False:
             HProbe.draw_vframesize(dictFrameInfo)
 
+    HProbe.print_vframe()
+
 def main():
     print("probe.py : format and visualize ffprobe's output \n"
           "Help: python3 main.py -h\n")
