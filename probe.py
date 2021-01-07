@@ -292,7 +292,6 @@ class CProbe(object):
         for type in listType:
             print("%s Frame count : %d" % (type, listVType.count(type)))
 
-
     def print_vframesize(self, dictFrameInfo):
         listVFrameSize_byFrame = dictFrameInfo['vframe_size_byframe']
         listVFrameSize_byTime = dictFrameInfo['vframe_size_bytime']
@@ -329,11 +328,18 @@ class CProbe(object):
     def print_vframe(self):
         listVType = self._dictFrameInfo.get("pict_type", list())
         listFrameSize = self._dictFrameInfo.get('vframe_size_byframe', list())
-        listQP = self._listQP
+        listQP = self._listQP if self._listQP is not None else list()
         framenum = max([len(listVType), len(listFrameSize), len(listQP)])
+        dict_framesize_bytype = { 'I' : 0, 'P' : 0, 'B' : 0 }
         print("sn\tvtype\tqp\tframesize")
         for i in range(framenum):
-            print("%d\t%s\t%s\t%s" % (i, self.list_v(listVType, i), str(self.list_v(listFrameSize, i)), str(self.list_v(self._listQP, i))))
+            print("%d\t%s\t%s\t%s" % (i, self.list_v(listVType, i), str(self.list_v(listFrameSize, i)), str(self.list_v(listQP, i))))
+            if self.list_v(listFrameSize, i) is not None:
+                dict_framesize_bytype[listVType[i]] += self.list_v(listFrameSize, i)
+        print("stat info")
+        listType = ['I', 'P', 'B']
+        for type in listType:
+            print("%s Frame count : %d, total_framesize : %d" % (type, listVType.count(type), dict_framesize_bytype[type]))
 
 HProbe = CProbe()
 
@@ -342,13 +348,13 @@ if __name__=="__main__":
     # videourl = "rtmp://14.29.108.156/zeushub/willwanghanyu1500K?domain=play-qiniu.cloudvdn.com"
     # videourl = "d:\\workroom\\testroom\\h48.mp4"
     videourl = "d:\\workroom\\testroom\\ht\\avsmart2_7B5EA1865D9277E71CE28927841553DB.mp4"
-    listQP = HProbe.get_qp(videourl, skip_frame="default", duration_sec=10)
+    # listQP = HProbe.get_qp(videourl, skip_frame="default", duration_sec=10)
     # HProbe.draw_qp(listQP)
-    HProbe.print_qp(listQP)
+    # HProbe.print_qp(listQP)
 
     # ci = HProbe.get_coreinfo(videourl)
     # HProbe.print_coreinfo(ci)
-    dictFrameInfo = HProbe.get_frameinfo(videourl, ['vframe_size', 'pict_type'], duration_sec=10)
+    dictFrameInfo = HProbe.get_frameinfo(videourl, ['vframe_size', 'pict_type'], duration_sec=100000)
     # HProbe.draw_frame_ts(dictFrameInfo)
     # HProbe.draw_frame_vtype(dictFrameInfo)
     # HProbe.print_vtype(dictFrameInfo)
