@@ -334,7 +334,7 @@ class CProbe(object):
         print("sn\tvtype\tqp\tframesize")
         for i in range(framenum):
             print("%d\t%s\t%s\t%s" % (i, self.list_v(listVType, i), str(self.list_v(listFrameSize, i)), str(self.list_v(listQP, i))))
-            if self.list_v(listFrameSize, i) is not None:
+            if self.list_v(listFrameSize, i) is not None and i<len(listVType):
                 dict_framesize_bytype[listVType[i]] += self.list_v(listFrameSize, i)
         print("stat info")
         listType = ['I', 'P', 'B']
@@ -345,21 +345,21 @@ HProbe = CProbe()
 
 
 if __name__=="__main__":
-    # videourl = "rtmp://14.29.108.156/zeushub/willwanghanyu1500K?domain=play-qiniu.cloudvdn.com"
+    videourl = "http://livetdsrc.tangdou.com/record/tdlive-tencent/24613239/1614250321.mp4"
     # videourl = "d:\\workroom\\testroom\\h48.mp4"
-    videourl = "d:\\workroom\\testroom\\ht\\avsmart2_7B5EA1865D9277E71CE28927841553DB.mp4"
+    # videourl = "d:\\workroom\\testroom\\ht\\avsmart2_7B5EA1865D9277E71CE28927841553DB.mp4"
     # listQP = HProbe.get_qp(videourl, skip_frame="default", duration_sec=10)
     # HProbe.draw_qp(listQP)
     # HProbe.print_qp(listQP)
 
-    # ci = HProbe.get_coreinfo(videourl)
-    # HProbe.print_coreinfo(ci)
-    dictFrameInfo = HProbe.get_frameinfo(videourl, ['vframe_size', 'pict_type'], duration_sec=100000)
-    # HProbe.draw_frame_ts(dictFrameInfo)
+    ci = HProbe.get_coreinfo(videourl)
+    HProbe.print_coreinfo(ci)
+    dictFrameInfo = HProbe.get_frameinfo(videourl, ['ts'], duration_sec=1000)
+    HProbe.draw_frame_ts(dictFrameInfo)
     # HProbe.draw_frame_vtype(dictFrameInfo)
     # HProbe.print_vtype(dictFrameInfo)
     # HProbe.print_ts(dictFrameInfo)
     # HProbe.draw_vframesize(dictFrameInfo)
     # HProbe.print_vframesize(dictFrameInfo)
-    HProbe.print_vframe()
+    # HProbe.print_vframe()
 
